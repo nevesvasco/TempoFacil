@@ -13,11 +13,11 @@ data class ApiCurrentWeather(
     @SerialName("temperature_2m")
     val temperature2m: Double,
     @SerialName("time")
-    val time: Int,
+    val time: Long,
     @SerialName("weather_code")
     val weatherCode: Int,
     @SerialName("wind_direction_10m")
-    val windDirection10m: Int,
+    val windDirection10m: Double,
     @SerialName("wind_speed_10m")
-    val windSpeed10m: Int
+    val windSpeed10m: Double
 )
