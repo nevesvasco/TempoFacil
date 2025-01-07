@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Current(
+data class ApiCurrentWeather(
     @SerialName("interval")
     val interval: Int,
     @SerialName("is_day")

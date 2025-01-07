@@ -7,11 +7,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApiWeather(
     @SerialName("current")
-    val current: Current,
+    val current: ApiCurrentWeather,
     @SerialName("current_units")
     val currentUnits: CurrentUnits,
     @SerialName("daily")
-    val daily: Daily,
+    val daily: ApiDailyWeather,
     @SerialName("daily_units")
     val dailyUnits: DailyUnits,
     @SerialName("elevation")
@@ -19,7 +19,7 @@ data class ApiWeather(
     @SerialName("generationtime_ms")
     val generationtimeMs: Double,
     @SerialName("hourly")
-    val hourly: Hourly,
+    val hourly: ApiHourlyWeather,
     @SerialName("hourly_units")
     val hourlyUnits: HourlyUnits,
     @SerialName("latitude")

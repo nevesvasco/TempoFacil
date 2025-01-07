@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Daily(
+data class ApiDailyWeather(
     @SerialName("sunrise")
     val sunrise: List<Int>,
     @SerialName("sunset")
