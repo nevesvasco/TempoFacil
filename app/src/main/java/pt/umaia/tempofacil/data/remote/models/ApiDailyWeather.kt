@@ -15,13 +15,13 @@ data class ApiDailyWeather(
     @SerialName("temperature_2m_min")
     val temperature2mMin: List<Double>,
     @SerialName("time")
-    val time: List<Int>,
+    val time: List<Long>,
     @SerialName("uv_index_max")
     val uvIndexMax: List<Double>,
     @SerialName("weather_code")
     val weatherCode: List<Int>,
     @SerialName("wind_direction_10m_dominant")
-    val windDirection10mDominant: List<Int>,
+    val windDirection10mDominant: List<Double>,
     @SerialName("wind_speed_10m_max")
     val windSpeed10mMax: List<Double>
 )
