@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.dagger.hilt.android)
+    id("com.google.gms.google-services")
     id("kotlinx-serialization")
     kotlin("kapt")
 }
@@ -12,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "pt.umaia.tempofacil"
-        minSdk = 26
+        minSdk = 34
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -86,6 +87,11 @@ dependencies {
     implementation ("com.squareup.moshi:moshi:1.13.0")
     implementation ("com.squareup.moshi:moshi-kotlin:1.13.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-auth")
+    implementation ("com.google.firebase:firebase-database")
+
     kapt ("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
 
 }

@@ -4,13 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -19,6 +17,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 import pt.umaia.tempofacil.R
 
 @Composable
@@ -27,18 +26,15 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-
-    // Carregar os recursos de imagem
-    val logo: Painter = painterResource(id = R.mipmap.logo_foreground)
-    val wallpaper: Painter = painterResource(id = R.mipmap.wallpaper_foreground)
+    val coroutineScope = rememberCoroutineScope()
+    val firebaseAuth = FirebaseAuth.getInstance()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         // Fundo com wallpaper
         Image(
-            painter = wallpaper,
+            painter = painterResource(id = R.mipmap.wallpaper_foreground),
             contentDescription = "Fundo",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -54,16 +50,16 @@ fun LoginScreen(navController: NavController) {
         ) {
             // Logotipo
             Image(
-                painter = logo,
+                painter = painterResource(id = R.mipmap.logo_foreground),
                 contentDescription = "Logotipo",
                 modifier = Modifier
-                    .size(400.dp)
+                    .size(200.dp)
                     .padding(bottom = 24.dp)
             )
 
             Text(
                 text = "Login",
-                style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -88,9 +84,8 @@ fun LoginScreen(navController: NavController) {
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    // Alternar visibilidade da password
                     Text(
-                        text = if (passwordVisible) "Mostrar" else "Ocultar",
+                        text = if (passwordVisible) "Ocultar" else "Mostrar",
                         modifier = Modifier
                             .padding(end = 8.dp)
                             .clickable { passwordVisible = !passwordVisible }
@@ -100,26 +95,25 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botão de login
             Button(
                 onClick = {
-                    if (email.isEmpty() || password.isEmpty()) {
-                        errorMessage = "Por favor, preencha todos os campos."
-                        return@Button
-                    }
-
-                    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                navController.navigate("home")
-                            } else {
-                                val error = task.exception?.message ?: "Erro ao fazer login"
-                                errorMessage = error
-                                // Log para ajudar a depurar o erro
-                                task.exception?.printStackTrace()
-                            }
+                    coroutineScope.launch {
+                        try {
+                            firebaseAuth.signInWithEmailAndPassword(email, password)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        navController.navigate("home")
+                                    } else {
+                                        errorMessage = task.exception?.message ?: "Erro desconhecido."
+                                    }
+                                }
+                        } catch (e: Exception) {
+                            errorMessage = "Erro ao conectar ao Firebase: ${e.message}"
                         }
+                    }
                 },
-                modifier = Modifier.fillMaxWidth() // O botão ocupa toda a largura do ecrã
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Login")
             }
@@ -127,13 +121,17 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = errorMessage, color = androidx.compose.ui.graphics.Color.Red)
+            // Mensagem de erro
+            if (errorMessage.isNotEmpty()) {
+                Text(text = errorMessage, color = Color.Red)
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Botão de registo
             Button(
                 onClick = { navController.navigate("register") },
-                modifier = Modifier.fillMaxWidth() // O botão ocupa toda a largura do ecrã
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Registar-se")
             }
