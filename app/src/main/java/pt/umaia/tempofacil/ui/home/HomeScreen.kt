@@ -1,117 +1,107 @@
 package pt.umaia.tempofacil.ui.home
 
-import android.graphics.Paint.Align
-import android.graphics.drawable.Icon
-import android.widget.Space
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon.Companion.Text
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.SemanticsProperties.Text
-import androidx.compose.ui.text.input.KeyboardType.Companion.Text
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import pt.umaia.tempofacil.data.remote.models.ApiHourlyWeather
-import pt.umaia.tempofacil.data.remote.models.domain.models.CurrentWeather
-import pt.umaia.tempofacil.data.remote.models.domain.models.Daily
-import pt.umaia.tempofacil.data.remote.models.domain.models.Hourly
+import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import pt.umaia.tempofacil.data.CurrentWeatherData
+import pt.umaia.tempofacil.data.DailyWeatherData
+import pt.umaia.tempofacil.data.HourlyWeatherData
+import pt.umaia.tempofacil.data.WeatherResponse
 import pt.umaia.tempofacil.utils.Util
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.*
 
-const val degreeTxt = "\u0000"
+const val degreeTxt = "°"
 
 @Composable
-fun HomeScreen (
+fun HomeScreen(
+    navController: NavController,
     modifier: Modifier = Modifier,
-    homeViewModel: HomeViewModel = hiltViewModel()
-){
-    val homeState = homeViewModel.homeState
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ){
-        when(homeState.isLoading){
-            true -> {
-                CircularProgressIndicator()
-            }
-            else -> {
-                homeState.weather?.let {
+    weatherResponse: WeatherResponse? = null,  // Passando os dados diretamente
+    hourlyWeather: List<HourlyWeatherData> = emptyList(),  // Passando os dados de previsão horária diretamente
+    currentWeather: CurrentWeatherData? = null, // Passando os dados de previsão atual diretamente
+    dailyWeatherInfo: List<DailyWeatherData> = emptyList(), // Passando os dados diários
+    errorMessage: String? = null, // Passando a mensagem de erro diretamente
+    isLoading: Boolean = false  // Indicando o estado de carregamento
+) {
+    Scaffold { innerPadding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            if (isLoading) {
+                // Se estiver carregando, podemos mostrar um indicador de progresso
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else {
+                currentWeather?.let { weather ->
                     CurrentWeatherItem(
-                        currentWeather = it.currentWeather,
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        )
-
-                    HourlyWeatherItem(
-                        hourly = it.hourly,
-                        modifier = Modifier.align(Alignment.BottomCenter)
+                        currentWeather = weather,
                     )
-
                 }
-                homeState.dailyWeatherInfo?.let {
-                    Row(
+
+                hourlyWeather?.let { hourly ->
+                    HourlyWeatherItem(
+                        hourly = hourly,
+                    )
+                }
+
+                // Passando a lista dailyWeatherInfo individualmente
+                if (dailyWeatherInfo.isNotEmpty()) {
+                    LazyRow(
                         modifier = Modifier.fillMaxWidth()
                             .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaçamento entre os itens
                     ) {
-                        SunSetWeatherItem(weatherInfo = it)
-                        UvIndexWeatherItem(weatherInfo = it)
+                        items(dailyWeatherInfo) { weatherItem ->
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                SunSetWeatherItem(weatherInfo = weatherItem)
+                                UvIndexWeatherItem(weatherInfo = weatherItem)
+                            }
+                        }
                     }
+                }
+
+                // Se houver erro, exibe a mensagem
+                errorMessage?.let {
+                    Text(text = it, color = androidx.compose.ui.graphics.Color.Red)
                 }
             }
         }
     }
 }
 
+
 @Composable
 fun CurrentWeatherItem(
     modifier: Modifier = Modifier,
-    currentWeather: CurrentWeather
+    currentWeather: CurrentWeatherData
 ) {
-    Column (
+    Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            painter = painterResource(id = currentWeather.weatherStatus.icon),
+            painter = rememberAsyncImagePainter("https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png"),
             contentDescription = null,
             modifier = Modifier.size(120.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = currentWeather.temperature.toString() + degreeTxt,
-            style = MaterialTheme.typography.displayMedium,
+            text = "${currentWeather.temperature}$degreeTxt",
+            style = MaterialTheme.typography.displayMedium
         )
-        Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Weather Status:${currentWeather.weatherStatus.info}",
-            style = MaterialTheme.typography.displayLarge,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Wind Speed:${currentWeather.windSpeed} ${currentWeather.windSpeed} Km/h",
-            style = MaterialTheme.typography.bodyMedium,
+            text = currentWeather.weather[0].description,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -119,78 +109,76 @@ fun CurrentWeatherItem(
 @Composable
 fun HourlyWeatherItem(
     modifier: Modifier = Modifier,
-    hourly: Hourly,
-    ){
+    hourly: List<HourlyWeatherData> // Corrigido para esperar uma lista
+) {
     Card(
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Today",
-                style = MaterialTheme.typography.bodyMedium,
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Today",
+                    style = MaterialTheme.typography.bodyMedium,
                 )
-
-            Text(
-                text = Util.formatNormalDate("MMMM,dd", Date().time),
-                style = MaterialTheme.typography.bodyMedium,
+                Text(
+                    text = Util.formatNormalDate("MMMM, dd", Date().time),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            HorizontalDivider(
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-        HorizontalDivider(
-            thickness = 2.dp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        LazyRow(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            items(hourly.weatherInfo) { infoItem ->
-                HourlyWeatherInfoItem(infoItem = infoItem)
+            LazyRow(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                items(hourly) { infoItem -> // Itera sobre a lista corretamente
+                    HourlyWeatherInfoItem(infoItem = infoItem)
+                }
             }
         }
     }
 }
 
+
 @Composable
 fun HourlyWeatherInfoItem(
     modifier: Modifier = Modifier,
-    infoItem: Hourly.HourlyInfoItem,
-    ){
+    infoItem: HourlyWeatherData
+) {
     Column(
         modifier = modifier
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
-    ){
+    ) {
         Text(
-            text = "${infoItem.temperature} $degreeTxt",
+            text = "${infoItem.temperature}$degreeTxt",
             style = MaterialTheme.typography.bodySmall,
         )
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
+        Spacer(modifier = Modifier.height(8.dp))
         Icon(
-            painter = painterResource(id = infoItem.weatherStatus.icon),
+            painter = rememberAsyncImagePainter("https://openweathermap.org/img/wn/${infoItem.weather[0].icon}@2x.png"),
             contentDescription = null,
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier.size(64.dp)
         )
         Text(
-            text = "${infoItem.time}",
+            text = formatTime(infoItem.time),
             style = MaterialTheme.typography.bodySmall,
         )
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
-
-
     }
 }
 
 @Composable
-fun SunSetWeatherItem(modifier: Modifier = Modifier, weatherInfo: Daily.WeatherInfo){
+fun SunSetWeatherItem(
+    modifier: Modifier = Modifier,
+    weatherInfo: DailyWeatherData
+) {
     Card(modifier = Modifier.padding(horizontal = 8.dp)) {
         Column(
             Modifier.padding(16.dp),
@@ -200,13 +188,13 @@ fun SunSetWeatherItem(modifier: Modifier = Modifier, weatherInfo: Daily.WeatherI
             Text(
                 text = "Sunrise",
                 style = MaterialTheme.typography.headlineSmall,
-                )
+            )
             Text(
-                text = weatherInfo.sunrise,
+                text = formatTime(weatherInfo.sunrise),
                 style = MaterialTheme.typography.displayMedium,
             )
             Text(
-                text = "Sunset ${weatherInfo.sunset}",
+                text = "Sunset: ${formatTime(weatherInfo.sunset)}",
                 style = MaterialTheme.typography.displayMedium,
             )
         }
@@ -214,7 +202,10 @@ fun SunSetWeatherItem(modifier: Modifier = Modifier, weatherInfo: Daily.WeatherI
 }
 
 @Composable
-fun UvIndexWeatherItem(modifier: Modifier = Modifier, weatherInfo: Daily.WeatherInfo){
+fun UvIndexWeatherItem(
+    modifier: Modifier = Modifier,
+    weatherInfo: DailyWeatherData
+) {
     Card(modifier = Modifier.padding(horizontal = 8.dp)) {
         Column(
             Modifier.padding(16.dp),
@@ -230,9 +221,15 @@ fun UvIndexWeatherItem(modifier: Modifier = Modifier, weatherInfo: Daily.Weather
                 style = MaterialTheme.typography.displayMedium,
             )
             Text(
-                text = "Status ${weatherInfo.weatherStatus.info}",
+                text = "Status: ${weatherInfo.weather[0].description}",
                 style = MaterialTheme.typography.displayMedium,
             )
         }
     }
+}
+
+// Função para formatar o tempo em hora
+fun formatTime(timeInMillis: Long): String {
+    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return sdf.format(Date(timeInMillis * 1000)) // Converte para milissegundos
 }

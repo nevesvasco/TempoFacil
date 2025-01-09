@@ -1,63 +1,55 @@
 package pt.umaia.tempofacil.ui.home
 
-import androidx.compose.runtime.getValue
+import pt.umaia.tempofacil.data.DailyWeatherData
+
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import pt.umaia.tempofacil.data.remote.models.domain.models.Daily
-import pt.umaia.tempofacil.data.remote.models.domain.models.Weather
-import pt.umaia.tempofacil.data.remote.models.domain.repository.WeatherRepository
-import pt.umaia.tempofacil.utils.Response
-import pt.umaia.tempofacil.utils.Util
+import pt.umaia.tempofacil.data.WeatherRepository
+import pt.umaia.tempofacil.data.WeatherResponse
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: WeatherRepository
-): ViewModel() {
-    var homeState by mutableStateOf(HomeState())
+) : ViewModel() {
+
+    var homeState = mutableStateOf(HomeState())
         private set
 
     init {
-        viewModelScope.launch{
-            repository.getWeatherData().collect{response ->
-                when(response){
-                    is Response.Loading -> {
-                        homeState = homeState.copy(
-                            isLoading = true
-                        )
-                    }
-                    is Response.Success -> {
-                        homeState = homeState.copy(
-                            isLoading = false,
-                            error = null,
-                            weather = response.data
-                        )
-                        val todayDailyWeatherInfo = response.data?.daily?.weatherInfo?.find{
-                            Util.isTodayDate(it.time)
-                        }
-                        homeState = homeState.copy(
-                            dailyWeatherInfo = todayDailyWeatherInfo
-                        )
-                    }
-                    is Response.Error -> {
-                        homeState = homeState.copy(
-                            isLoading = false,
-                            error = response.message
-                        )
-                    }
-                }
+        fetchWeatherData()
+    }
+
+    private fun fetchWeatherData() {
+        viewModelScope.launch {
+            try {
+                homeState.value = homeState.value.copy(isLoading = true)
+                val response = repository.getWeatherData(
+                    lat = 40.6405, // Latitude do Porto, por exemplo.
+                    lon = -8.6538, // Longitude do Porto.
+                    apiKey = "0f56b5eaf34aa173d7ad2c9cc2a3cb01"
+                )
+                homeState.value = homeState.value.copy(
+                    isLoading = false,
+                    weather = response
+                )
+            } catch (e: Exception) {
+                homeState.value = homeState.value.copy(
+                    isLoading = false,
+                    error = e.message
+                )
             }
         }
     }
 }
 
+
 data class HomeState(
-    val weather:Weather? = null,
+    val weather: WeatherResponse? = null,
     val error: String? = null,
     val isLoading: Boolean = false,
-    val dailyWeatherInfo: Daily.WeatherInfo? = null
+    val dailyWeatherInfo: List<DailyWeatherData> = emptyList()
 )

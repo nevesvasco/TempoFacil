@@ -17,11 +17,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import pt.umaia.tempofacil.R
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit) {
+fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
@@ -101,12 +102,20 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit) {
 
             Button(
                 onClick = {
+                    if (email.isEmpty() || password.isEmpty()) {
+                        errorMessage = "Por favor, preencha todos os campos."
+                        return@Button
+                    }
+
                     FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                onLoginSuccess() // Navegar para a página home
+                                navController.navigate("home")
                             } else {
-                                errorMessage = task.exception?.message ?: "Erro ao fazer login"
+                                val error = task.exception?.message ?: "Erro ao fazer login"
+                                errorMessage = error
+                                // Log para ajudar a depurar o erro
+                                task.exception?.printStackTrace()
                             }
                         }
                 },
@@ -115,6 +124,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit) {
                 Text("Login")
             }
 
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(text = errorMessage, color = androidx.compose.ui.graphics.Color.Red)
@@ -122,7 +132,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToRegister: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = onNavigateToRegister,
+                onClick = { navController.navigate("register") },
                 modifier = Modifier.fillMaxWidth() // O botão ocupa toda a largura do ecrã
             ) {
                 Text("Registar-se")
