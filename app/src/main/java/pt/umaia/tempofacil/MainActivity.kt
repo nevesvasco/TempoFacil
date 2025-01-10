@@ -15,6 +15,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import pt.umaia.tempofacil.data.WeatherRepository
 import pt.umaia.tempofacil.login.LoginScreen
 import pt.umaia.tempofacil.login.RegisterScreen
+import pt.umaia.tempofacil.ui.home.AirPollutionScreen
+import pt.umaia.tempofacil.ui.home.AirPollutionScreenWrapper
+import pt.umaia.tempofacil.ui.home.FiveDaysScreenWrapper
 import pt.umaia.tempofacil.ui.home.HomeScreenWrapper
 
 @AndroidEntryPoint
@@ -39,7 +42,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(weatherRepository: WeatherRepository) {
     val navController:NavHostController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LoginScreen(
                 navController,
@@ -58,9 +61,20 @@ fun AppNavigation(weatherRepository: WeatherRepository) {
         composable("home") {
             HomeScreenWrapper(
                 navController = navController,
-                weatherRepository = weatherRepository // Passando o WeatherRepository
+                weatherRepository = weatherRepository
+            )
+        }
+        composable("fivedays") {
+            FiveDaysScreenWrapper(
+                navController = navController,
+                weatherRepository = weatherRepository
+            )
+        }
+        composable("airpollution") {
+            AirPollutionScreenWrapper(
+                navController = navController,
+                weatherRepository = weatherRepository
             )
         }
     }
 }
-

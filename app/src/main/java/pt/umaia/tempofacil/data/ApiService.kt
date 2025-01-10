@@ -15,13 +15,20 @@ interface WeatherApiService {
     ): CurrentWeatherResponse
 
     @GET("forecast")
-    suspend fun getHourlyWeather(
+    suspend fun getFiveWeather(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
         @Query("appid") apiKey: String,
         @Query("units") units: String = "metric",
         @Query("lang") lang: String = "en"
-    ): HourlyWeatherData
+    ): FiveResponse
+
+    @GET("air_pollution")
+    suspend fun getPollutionWeather(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("appid") apiKey: String,
+    ): PollutionResponse
 
     @GET("onecall")
     suspend fun getDailyWeather(

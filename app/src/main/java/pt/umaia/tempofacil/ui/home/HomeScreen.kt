@@ -2,8 +2,6 @@ package pt.umaia.tempofacil.ui.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
@@ -18,10 +16,6 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import pt.umaia.tempofacil.R
 import pt.umaia.tempofacil.data.CurrentWeatherResponse
-import pt.umaia.tempofacil.data.DailyWeatherData
-import pt.umaia.tempofacil.data.HourlyWeatherData
-import pt.umaia.tempofacil.data.WeatherResponse
-import pt.umaia.tempofacil.utils.Util
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,10 +25,7 @@ const val degreeTxt = "°"
 fun HomeScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
-    weatherResponse: WeatherResponse? = null,  // Passando os dados diretamente
-    hourlyWeather: List<HourlyWeatherData> = emptyList(),  // Passando os dados de previsão horária diretamente
     currentWeather: CurrentWeatherResponse? = null, // Passando os dados de previsão atual diretamente
-    dailyWeatherInfo: List<DailyWeatherData> = emptyList(), // Passando os dados diários
     errorMessage: String? = null, // Passando a mensagem de erro diretamente
     isLoading: Boolean = false  // Indicando o estado de carregamento
 ) {
@@ -43,7 +34,7 @@ fun HomeScreen(
 
                 {
                     NavigationBar(
-                        containerColor = Color(0xFFA1B8CC), // Azul inspirado nos azulejos portugueses
+                        containerColor = (Color(0x80FFFFFF)),
                     ) {
 
                         // Search
@@ -71,14 +62,14 @@ fun HomeScreen(
                         NavigationBarItem(
                             icon = {
                                 Icon(
-                                    painter = painterResource(id = R.mipmap.sixteen_foreground),
-                                    contentDescription = "Dezasseis Dias",
+                                    painter = painterResource(id = R.mipmap.forecast_foreground),
+                                    contentDescription = "5 Dias",
                                     modifier = Modifier.size(50.dp), // Tamanho do ícone ajustado
                                     tint = Color.Unspecified // Desativa a tintagem para preservar a cor original da imagem
                                 )
                             },
                             selected = false, // Atualize a lógica para seleção dinâmica
-                            onClick = { navController.navigate("dezasseisdias") },
+                            onClick = { navController.navigate("fivedays") },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
                                 selectedTextColor = Color.White,
@@ -92,14 +83,14 @@ fun HomeScreen(
                         NavigationBarItem(
                             icon = {
                                 Icon(
-                                    painter = painterResource(id = R.mipmap.mes_foreground),
-                                    contentDescription = "30 Dias",
-                                    modifier = Modifier.size(50.dp), // Tamanho do ícone ajustado
-                                    tint = Color.Unspecified // Desativa a tintagem para preservar a cor original da imagem
+                                    painter = painterResource(id = R.mipmap.pollution_foreground),
+                                    contentDescription = "Poluição do Ar",
+                                    modifier = Modifier.size(50.dp),
+                                    tint = Color.Unspecified
                                 )
                             },
                             selected = false, // Atualize a lógica para seleção dinâmica
-                            onClick = { navController.navigate("mensal") }
+                            onClick = { navController.navigate("airpollution") }
                         )
                     }
                 }
@@ -119,7 +110,6 @@ fun HomeScreen(
 
             ) {
                 if (isLoading) {
-                    // Se estiver carregando, podemos mostrar um indicador de progresso
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
 
