@@ -5,12 +5,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
+import com.squareup.moshi.Moshi
+import pt.umaia.tempofacil.RetrofitInstance
 import pt.umaia.tempofacil.data.WeatherRepository
 import pt.umaia.tempofacil.data.WeatherResponse
 import pt.umaia.tempofacil.data.HourlyWeatherData
-import pt.umaia.tempofacil.data.CurrentWeatherData
 import pt.umaia.tempofacil.data.DailyWeatherData
+import pt.umaia.tempofacil.data.remote.models.domain.models.CurrentWeather
 import java.lang.Exception
+import org.json.JSONObject
+import pt.umaia.tempofacil.data.CurrentWeatherResponse
+import pt.umaia.tempofacil.data.WeatherDescription
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 @Composable
@@ -18,43 +25,76 @@ fun HomeScreenWrapper(
     navController: NavController,
     weatherRepository: WeatherRepository
 ) {
-    // Estados para controlar os dados e mensagens
     val isLoading = remember { mutableStateOf(true) }
     val weatherResponse = remember { mutableStateOf<WeatherResponse?>(null) }
     val hourlyWeather = remember { mutableStateOf<List<HourlyWeatherData>>(emptyList()) }
-    val currentWeather = remember { mutableStateOf<CurrentWeatherData?>(null) }
+    val currentWeather = remember { mutableStateOf<CurrentWeatherResponse?>(null) }
     val dailyWeatherInfo = remember { mutableStateOf<List<DailyWeatherData>>(emptyList()) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
-    // Recuperar dados de previsão do tempo
-    LaunchedEffect(Unit) {
+    suspend fun fetchCurrentWeatherHttp(lat: Double, lon: Double, apiKey: String): CurrentWeatherResponse? {
+        val urlString =
+            "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric&lang=pt"
+        return try {
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connect()
+
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                val moshi = Moshi.Builder().build()
+                val adapter = moshi.adapter(CurrentWeatherResponse::class.java)
+                adapter.fromJson(response)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun fetchCurrentWeather() {
         try {
-            val apiKey = "0f56b5eaf34aa173d7ad2c9cc2a3cb01" // Sua chave de API
+            val apiKey = "0f56b5eaf34aa173d7ad2c9cc2a3cb01"
             val lat = 40.6405
             val lon = -8.6538
 
-            // Chamada para pegar o clima atual
+            val response = fetchCurrentWeatherHttp(lat, lon, apiKey)
+            currentWeather.value = response
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            errorMessage.value = e.message
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        try {
+            val apiKey = "0f56b5eaf34aa173d7ad2c9cc2a3cb01"
+            val lat = 40.6405
+            val lon = -8.6538
+
+            fetchCurrentWeather()
+
             currentWeather.value = weatherRepository.apiService.getCurrentWeather(lat, lon, apiKey)
 
-            // Chamada para pegar as previsões horárias
-            hourlyWeather.value = weatherResponse.value?.hourly ?: emptyList()
+            if (weatherResponse.value == null) {
+            } else {
+                hourlyWeather.value = weatherResponse.value?.hourly ?: emptyList()
+                dailyWeatherInfo.value = weatherResponse.value?.daily ?: emptyList()
+            }
 
-            // Chamada para pegar as previsões diárias
-            weatherResponse.value = weatherRepository.apiService.getDailyWeather(lat, lon, apiKey)
-
-            // Extraindo as informações diárias do response
-            dailyWeatherInfo.value = weatherResponse.value?.daily ?: emptyList()
-
-            // Atualizar estado de carregamento
             isLoading.value = false
         } catch (e: Exception) {
-            // Exibir mensagem de erro em caso de falha
+            println("Exception during LaunchedEffect: ${e.message}")
+            e.printStackTrace()
             errorMessage.value = e.message
             isLoading.value = false
         }
     }
 
-    // Passar os dados para a HomeScreen
     HomeScreen(
         navController = navController,
         weatherResponse = weatherResponse.value,

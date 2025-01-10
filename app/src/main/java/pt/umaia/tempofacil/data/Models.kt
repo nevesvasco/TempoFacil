@@ -4,20 +4,37 @@ import com.squareup.moshi.Json
 
 
 data class WeatherResponse(
-    @Json(name = "current") val current: CurrentWeatherData,
+    @Json(name = "current") val current: CurrentWeatherResponse,
     @Json(name = "daily") val daily: List<DailyWeatherData>,
     @Json(name = "hourly") val hourly: List<HourlyWeatherData>
 )
 
-data class CurrentWeatherData(
-    @Json(name = "temp") val temperature: Double,
-    @Json(name = "wind_speed") val windSpeed: Double,
-    @Json(name = "weather") val weather: List<WeatherDescription>
+data class CurrentWeatherResponse(
+    val main: Main,
+    val weather: List<WeatherDescription>,
+    val wind: Wind,
+    val name: String
+)
+
+data class Main(
+    val temp: Double,
+    val feels_like: Double,
+    val temp_min: Double,
+    val temp_max: Double,
+    val pressure: Int,
+    val humidity: Int
 )
 
 data class WeatherDescription(
-    @Json(name = "icon") val icon: String,
-    @Json(name = "description") val description: String
+    val id: Int,
+    val main: String,
+    val description: String,
+    val icon: String
+)
+
+data class Wind(
+    val speed: Double,
+    val deg: Int
 )
 
 data class DailyWeatherData(

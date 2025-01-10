@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(weatherRepository: WeatherRepository) {
     val navController:NavHostController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "home") {
         composable("login") {
             LoginScreen(
                 navController,
