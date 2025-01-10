@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            val apiService = RetrofitInstance.apiService // Instancie seu Retrofit aqui
+            val apiService = RetrofitInstance.apiService
             val weatherRepository = WeatherRepository(apiService)
 
             AppNavigation(weatherRepository = weatherRepository)

@@ -73,8 +73,8 @@ fun HomeScreenWrapper(
     LaunchedEffect(Unit) {
         try {
             val apiKey = "0f56b5eaf34aa173d7ad2c9cc2a3cb01"
-            val lat = 40.6405
-            val lon = -8.6538
+            val lat = 41.328279
+            val lon = -8.550500
 
             fetchCurrentWeather()
 

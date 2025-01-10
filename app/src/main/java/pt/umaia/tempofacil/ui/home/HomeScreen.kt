@@ -38,7 +38,73 @@ fun HomeScreen(
     errorMessage: String? = null, // Passando a mensagem de erro diretamente
     isLoading: Boolean = false  // Indicando o estado de carregamento
 ) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        bottomBar = (
+
+                {
+                    NavigationBar(
+                        containerColor = Color(0xFFA1B8CC), // Azul inspirado nos azulejos portugueses
+                    ) {
+
+                        // Search
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = R.mipmap.today_foreground),
+                                    contentDescription = "Agenda",
+                                    modifier = Modifier.size(50.dp), // Tamanho do ícone ajustado
+                                    tint = Color.Unspecified // Desativa a tintagem para preservar a cor original da imagem
+                                )
+                            },
+                            selected = false, // Atualize a lógica para seleção dinâmica
+                            onClick = { navController.navigate("home") },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = Color.White,
+                                indicatorColor = Color(0xFF006377),
+                                unselectedIconColor = Color.LightGray,
+                                unselectedTextColor = Color.LightGray
+                            )
+                        )
+
+                        // Notifications
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = R.mipmap.sixteen_foreground),
+                                    contentDescription = "Dezasseis Dias",
+                                    modifier = Modifier.size(50.dp), // Tamanho do ícone ajustado
+                                    tint = Color.Unspecified // Desativa a tintagem para preservar a cor original da imagem
+                                )
+                            },
+                            selected = false, // Atualize a lógica para seleção dinâmica
+                            onClick = { navController.navigate("dezasseisdias") },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = Color.White,
+                                indicatorColor = Color(0xFF006377),
+                                unselectedIconColor = Color.LightGray,
+                                unselectedTextColor = Color.LightGray
+                            )
+                        )
+
+                        // Custom Home Button
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = R.mipmap.mes_foreground),
+                                    contentDescription = "30 Dias",
+                                    modifier = Modifier.size(50.dp), // Tamanho do ícone ajustado
+                                    tint = Color.Unspecified // Desativa a tintagem para preservar a cor original da imagem
+                                )
+                            },
+                            selected = false, // Atualize a lógica para seleção dinâmica
+                            onClick = { navController.navigate("mensal") }
+                        )
+                    }
+                }
+                )
+    ) { innerPadding ->
         Box{
             Image(
                 painter = painterResource(id = R.mipmap.wallpaper_foreground),
@@ -57,28 +123,6 @@ fun HomeScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
 
-
-                    hourlyWeather?.let { hourly ->
-                        HourlyWeatherItem(
-                            hourly = hourly,
-                        )
-                    }
-
-                    // Passando a lista dailyWeatherInfo individualmente
-                    if (dailyWeatherInfo.isNotEmpty()) {
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(top = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaçamento entre os itens
-                        ) {
-                            items(dailyWeatherInfo) { weatherItem ->
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    SunSetWeatherItem(weatherInfo = weatherItem)
-                                    UvIndexWeatherItem(weatherInfo = weatherItem)
-                                }
-                            }
-                        }
-                    }
                     currentWeather?.let { weather ->
                         CurrentWeatherItem(
                             currentWeather = weather,
@@ -123,143 +167,64 @@ fun CurrentWeatherItem(
                 text = currentWeather.weather[0].description,
                 style = MaterialTheme.typography.displaySmall
             )
-            Row{
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 3.dp,
+                color = Color.Black)
+            Row {
                 Icon(
-                    imageVector = Icons.Default.LocationOn, // Adapte o recurso para o ícone de localização
+                    imageVector = Icons.Default.LocationOn, // Ícone de localização
                     contentDescription = "Localização",
                     modifier = Modifier
-                        .size(48.dp).offset(x = -25.dp),
+                        .size(48.dp),
                     tint = Color.Red
                 )
                 Text(
                     text = currentWeather.name,
                     style = MaterialTheme.typography.displayMedium,
                     modifier = Modifier
-                        .offset(x = -25.dp)
                 )
             }
-        }
-    }
-}
-
-
-@Composable
-fun HourlyWeatherItem(
-    modifier: Modifier = Modifier,
-    hourly: List<HourlyWeatherData> // Corrigido para esperar uma lista
-) {
-    Card(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Today",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = Util.formatNormalDate("MMMM, dd", Date().time),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            HorizontalDivider(
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            LazyRow(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                items(hourly) { infoItem -> // Itera sobre a lista corretamente
-                    HourlyWeatherInfoItem(infoItem = infoItem)
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun HourlyWeatherInfoItem(
-    modifier: Modifier = Modifier,
-    infoItem: HourlyWeatherData
-) {
-    Column(
-        modifier = modifier
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "${infoItem.temperature}$degreeTxt",
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Icon(
-            painter = rememberAsyncImagePainter("https://openweathermap.org/img/wn/${infoItem.weather[0].icon}@2x.png"),
-            contentDescription = null,
-            modifier = Modifier.size(64.dp)
-        )
-        Text(
-            text = formatTime(infoItem.time),
-            style = MaterialTheme.typography.bodySmall,
-        )
-    }
-}
-
-@Composable
-fun SunSetWeatherItem(
-    modifier: Modifier = Modifier,
-    weatherInfo: DailyWeatherData
-) {
-    Card(modifier = Modifier.padding(horizontal = 8.dp)) {
-        Column(
-            Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 1.dp,
+                color = Color.Black)
             Text(
-                text = "Sunrise",
-                style = MaterialTheme.typography.headlineSmall,
+                text = "Sensação de Temperatura: " + currentWeather.main.feels_like + "ºC",
+                style = MaterialTheme.typography.titleLarge,
             )
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 1.dp,
+                color = Color.Black)
             Text(
-                text = formatTime(weatherInfo.sunrise),
-                style = MaterialTheme.typography.displayMedium,
+                text = "Temperatura Mínima: " + currentWeather.main.temp_min + "ºC",
+                style = MaterialTheme.typography.titleLarge,
             )
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 1.dp,
+                color = Color.Black)
             Text(
-                text = "Sunset: ${formatTime(weatherInfo.sunset)}",
-                style = MaterialTheme.typography.displayMedium,
+                text = "Temperatura Máxima: " + currentWeather.main.temp_max + "ºC",
+                style = MaterialTheme.typography.titleLarge,
             )
-        }
-    }
-}
-
-@Composable
-fun UvIndexWeatherItem(
-    modifier: Modifier = Modifier,
-    weatherInfo: DailyWeatherData
-) {
-    Card(modifier = Modifier.padding(horizontal = 8.dp)) {
-        Column(
-            Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 1.dp,
+                color = Color.Black)
             Text(
-                text = "UV INDEX",
-                style = MaterialTheme.typography.headlineSmall,
+                text = "Pressão: " + currentWeather.main.pressure,
+                style = MaterialTheme.typography.titleLarge,
             )
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 1.dp,
+                color = Color.Black)
             Text(
-                text = weatherInfo.uvIndex.toString(),
-                style = MaterialTheme.typography.displayMedium,
+                text = "Humidade: " + currentWeather.main.humidity,
+                style = MaterialTheme.typography.titleLarge,
             )
+            Divider(modifier = Modifier.padding(5.dp),
+                thickness = 1.dp,
+                color = Color.Black)
             Text(
-                text = "Status: ${weatherInfo.weather[0].description}",
-                style = MaterialTheme.typography.displayMedium,
+                text = "Velocidade do Vento: " + currentWeather.wind.speed + " KM/h",
+                style = MaterialTheme.typography.titleLarge,
             )
         }
     }
